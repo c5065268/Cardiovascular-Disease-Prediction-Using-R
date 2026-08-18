@@ -588,3 +588,214 @@ tree_accuracy
 tree_precision
 tree_recall
 tree_f1
+
+
+
+# Random Forest model
+
+
+
+library(randomForest)
+
+set.seed(123)
+
+random_forest_model <- randomForest(
+  target ~ age_years + gender + BMI +
+    ap_hi + ap_lo + cholesterol + gluc +
+    smoke + alco + active,
+  data = train_data,
+  ntree = 100,
+  importance = TRUE
+)
+
+# View model details
+random_forest_model
+
+# Generate Random Forest predictions
+forest_prediction <- predict(
+  random_forest_model,
+  newdata = test_data
+)
+
+# Random Forest confusion matrix
+forest_matrix <- table(
+  Actual = test_data$target,
+  Predicted = forest_prediction
+)
+
+forest_matrix
+
+
+
+# Random Forest evaluation metrics
+
+
+forest_TN <- forest_matrix["No", "No"]
+forest_FP <- forest_matrix["No", "Yes"]
+forest_FN <- forest_matrix["Yes", "No"]
+forest_TP <- forest_matrix["Yes", "Yes"]
+
+forest_accuracy <- (
+  forest_TP + forest_TN
+) / sum(forest_matrix)
+
+forest_precision <- forest_TP / (
+  forest_TP + forest_FP
+)
+
+forest_recall <- forest_TP / (
+  forest_TP + forest_FN
+)
+
+forest_f1 <- 2 * (
+  forest_precision * forest_recall
+) / (
+  forest_precision + forest_recall
+)
+
+forest_accuracy
+forest_precision
+forest_recall
+forest_f1
+
+
+
+# Random Forest feature importance
+
+
+importance(random_forest_model)
+
+varImpPlot(
+  random_forest_model,
+  main = "Random Forest Feature Importance"
+)
+
+
+
+# Compare all three models
+
+
+model_comparison <- data.frame(
+  Model = c(
+    "Logistic Regression",
+    "Decision Tree",
+    "Random Forest"
+  ),
+  Accuracy = c(
+    logistic_accuracy,
+    tree_accuracy,
+    forest_accuracy
+  ),
+  Precision = c(
+    logistic_precision,
+    tree_precision,
+    forest_precision
+  ),
+  Recall = c(
+    logistic_recall,
+    tree_recall,
+    forest_recall
+  ),
+  F1_Score = c(
+    logistic_f1,
+    tree_f1,
+    forest_f1
+  )
+)
+
+# Round results to three decimal places
+model_comparison[, 2:5] <- round(
+  model_comparison[, 2:5],
+  3
+)
+
+# Display model comparison
+model_comparison
+
+
+
+# Compare model accuracy visually
+
+
+barplot(
+  model_comparison$Accuracy,
+  names.arg = model_comparison$Model,
+  main = "Accuracy Comparison of Machine Learning Models",
+  xlab = "Machine-learning model",
+  ylab = "Accuracy",
+  ylim = c(0, 1),
+  las = 2
+)
+
+
+
+# ROC curve and AUC
+
+
+
+
+library(pROC)
+
+# Logistic Regression ROC
+logistic_roc <- roc(
+  test_data$target,
+  logistic_probability,
+  levels = c("No", "Yes")
+)
+
+# Decision Tree probabilities
+tree_probability <- predict(
+  decision_tree_model,
+  newdata = test_data,
+  type = "prob"
+)[, "Yes"]
+
+tree_roc <- roc(
+  test_data$target,
+  tree_probability,
+  levels = c("No", "Yes")
+)
+
+# Random Forest probabilities
+forest_probability <- predict(
+  random_forest_model,
+  newdata = test_data,
+  type = "prob"
+)[, "Yes"]
+
+forest_roc <- roc(
+  test_data$target,
+  forest_probability,
+  levels = c("No", "Yes")
+)
+
+# Display AUC values
+auc(logistic_roc)
+auc(tree_roc)
+auc(forest_roc)
+
+# Plot the ROC curves
+plot(
+  logistic_roc,
+  main = "ROC Curves for the Three Models"
+)
+
+plot(
+  tree_roc,
+  add = TRUE
+)
+
+plot(
+  forest_roc,
+  add = TRUE
+)
+
+legend(
+  "bottomright",
+  legend = c(
+    "Logistic Regression",
+    "Decision Tree",
+    "Random Forest"
+  ),
+  lty = 1
+)
