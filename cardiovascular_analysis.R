@@ -430,3 +430,161 @@ dim(test_data)
 # Check target distribution
 prop.table(table(train_data$target))
 prop.table(table(test_data$target))
+
+
+
+# Logistic Regression
+
+
+logistic_model <- glm(
+  target ~ age_years + gender + BMI +
+    ap_hi + ap_lo + cholesterol + gluc +
+    smoke + alco + active,
+  data = train_data,
+  family = binomial
+)
+
+# View model results
+summary(logistic_model)
+
+# Generate probability predictions
+logistic_probability <- predict(
+  logistic_model,
+  newdata = test_data,
+  type = "response"
+)
+
+# Convert probability into Yes or No
+logistic_prediction <- ifelse(
+  logistic_probability >= 0.50,
+  "Yes",
+  "No"
+)
+
+logistic_prediction <- factor(
+  logistic_prediction,
+  levels = c("No", "Yes")
+)
+
+# Logistic Regression confusion matrix
+logistic_matrix <- table(
+  Actual = test_data$target,
+  Predicted = logistic_prediction
+)
+
+logistic_matrix
+
+
+
+# Logistic Regression evaluation metrics
+
+
+logistic_TN <- logistic_matrix["No", "No"]
+logistic_FP <- logistic_matrix["No", "Yes"]
+logistic_FN <- logistic_matrix["Yes", "No"]
+logistic_TP <- logistic_matrix["Yes", "Yes"]
+
+logistic_accuracy <- (
+  logistic_TP + logistic_TN
+) / sum(logistic_matrix)
+
+logistic_precision <- logistic_TP / (
+  logistic_TP + logistic_FP
+)
+
+logistic_recall <- logistic_TP / (
+  logistic_TP + logistic_FN
+)
+
+logistic_f1 <- 2 * (
+  logistic_precision * logistic_recall
+) / (
+  logistic_precision + logistic_recall
+)
+
+logistic_accuracy
+logistic_precision
+logistic_recall
+logistic_f1
+
+
+
+# Decision Tree model
+
+
+# The rpart package is normally available with R
+library(rpart)
+
+decision_tree_model <- rpart(
+  target ~ age_years + gender + BMI +
+    ap_hi + ap_lo + cholesterol + gluc +
+    smoke + alco + active,
+  data = train_data,
+  method = "class",
+  control = rpart.control(
+    cp = 0.01,
+    minsplit = 20
+  )
+)
+
+# Display the Decision Tree
+plot(
+  decision_tree_model,
+  uniform = TRUE,
+  margin = 0.1
+)
+
+text(
+  decision_tree_model,
+  use.n = TRUE,
+  all = TRUE,
+  cex = 0.7
+)
+
+# Generate Decision Tree predictions
+tree_prediction <- predict(
+  decision_tree_model,
+  newdata = test_data,
+  type = "class"
+)
+
+# Decision Tree confusion matrix
+tree_matrix <- table(
+  Actual = test_data$target,
+  Predicted = tree_prediction
+)
+
+tree_matrix
+
+
+
+# Decision Tree evaluation metrics
+
+
+tree_TN <- tree_matrix["No", "No"]
+tree_FP <- tree_matrix["No", "Yes"]
+tree_FN <- tree_matrix["Yes", "No"]
+tree_TP <- tree_matrix["Yes", "Yes"]
+
+tree_accuracy <- (
+  tree_TP + tree_TN
+) / sum(tree_matrix)
+
+tree_precision <- tree_TP / (
+  tree_TP + tree_FP
+)
+
+tree_recall <- tree_TP / (
+  tree_TP + tree_FN
+)
+
+tree_f1 <- 2 * (
+  tree_precision * tree_recall
+) / (
+  tree_precision + tree_recall
+)
+
+tree_accuracy
+tree_precision
+tree_recall
+tree_f1
