@@ -299,3 +299,134 @@ corrplot(
   number.cex = 0.6,
   tl.cex = 0.8
 )
+
+
+
+# Statistical tests
+
+
+# Cholesterol and cardiovascular disease
+cholesterol_test <- chisq.test(
+  table(
+    cardio_clean$cholesterol,
+    cardio_clean$cardio
+  )
+)
+
+cholesterol_test
+
+
+# Smoking and cardiovascular disease
+smoking_test <- chisq.test(
+  table(
+    cardio_clean$smoke,
+    cardio_clean$cardio
+  )
+)
+
+smoking_test
+
+
+# Physical activity and cardiovascular disease
+activity_test <- chisq.test(
+  table(
+    cardio_clean$active,
+    cardio_clean$cardio
+  )
+)
+
+activity_test
+
+
+# Glucose and cardiovascular disease
+glucose_test <- chisq.test(
+  table(
+    cardio_clean$gluc,
+    cardio_clean$cardio
+  )
+)
+
+glucose_test
+
+
+# Compare BMI between the two target groups
+bmi_test <- t.test(
+  BMI ~ cardio,
+  data = cardio_clean
+)
+
+bmi_test
+
+
+# Compare systolic blood pressure
+blood_pressure_test <- t.test(
+  ap_hi ~ cardio,
+  data = cardio_clean
+)
+
+blood_pressure_test
+
+
+
+# Prepare data for machine learning
+
+
+# Convert categorical variables into factors
+cardio_clean$gender <- factor(cardio_clean$gender)
+cardio_clean$cholesterol <- factor(cardio_clean$cholesterol)
+cardio_clean$gluc <- factor(cardio_clean$gluc)
+cardio_clean$smoke <- factor(cardio_clean$smoke)
+cardio_clean$alco <- factor(cardio_clean$alco)
+cardio_clean$active <- factor(cardio_clean$active)
+
+# Create a simple target factor
+cardio_clean$target <- factor(
+  cardio_clean$cardio,
+  levels = c(0, 1),
+  labels = c("No", "Yes")
+)
+
+# Select variables for machine learning
+model_data <- cardio_clean[, c(
+  "age_years",
+  "gender",
+  "BMI",
+  "ap_hi",
+  "ap_lo",
+  "cholesterol",
+  "gluc",
+  "smoke",
+  "alco",
+  "active",
+  "target"
+)]
+
+# Check the modelling data
+head(model_data)
+str(model_data)
+
+
+
+# Split data into training and testing sets
+
+
+# Set seed to make results repeatable
+set.seed(123)
+
+# Select 80% of rows for training
+training_rows <- sample(
+  1:nrow(model_data),
+  size = 0.80 * nrow(model_data)
+)
+
+# Create training and testing datasets
+train_data <- model_data[training_rows, ]
+test_data <- model_data[-training_rows, ]
+
+# Check dataset sizes
+dim(train_data)
+dim(test_data)
+
+# Check target distribution
+prop.table(table(train_data$target))
+prop.table(table(test_data$target))
